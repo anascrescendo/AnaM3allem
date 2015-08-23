@@ -1,8 +1,8 @@
 package com.misrotostudio.anam3allem;
 
-import android.app.ProgressDialog;
+
 import android.content.ContentResolver;
-import android.content.res.Configuration;
+
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
@@ -11,25 +11,26 @@ import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.Typeface;
+import android.media.ExifInterface;
 import android.net.Uri;
 import android.os.Environment;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.text.format.Time;
 import android.util.Log;
-import android.view.Display;
+
 import android.widget.ImageView;
 import android.widget.Toast;
 
 
-import com.facebook.CallbackManager;
+
 import com.facebook.FacebookSdk;
-import com.facebook.login.LoginManager;
-import com.facebook.share.ShareApi;
+
+
 import com.facebook.share.model.SharePhoto;
 import com.facebook.share.model.SharePhotoContent;
 import com.facebook.share.widget.ShareButton;
-import com.misrotostudio.anam3allem.helper.SessionManager;
+
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -41,15 +42,14 @@ import java.util.Date;
 
 public class MainActivity extends ActionBarActivity {
 
-    private Bitmap font;
+    private Bitmap hashTag;
+    private Bitmap jeVote;
     private Bitmap bitmap;
 
-    private CallbackManager callbackManager;
-    private LoginManager manager;
-
     private ShareButton shareButton;
-    private SessionManager session;
     private SharePhotoContent content;
+
+    private ImageView imageView;
 
 
 
@@ -61,43 +61,68 @@ public class MainActivity extends ActionBarActivity {
        setContentView(R.layout.activity_main);
 
 
-
-       FacebookSdk.sdkInitialize(getApplicationContext());
-
-       callbackManager = CallbackManager.Factory.create();
-
-
-
-
        shareButton = (ShareButton)findViewById(R.id.fb_share_button);
+       imageView = (ImageView) findViewById(R.id.image_view);
 
 
 
-
-
-
-
-
-
-       font = BitmapFactory.decodeResource(getApplicationContext().getResources(), R.drawable.je_vais);
+       hashTag = BitmapFactory.decodeResource(getApplicationContext().getResources(), R.drawable.hashtag);
+       jeVote = BitmapFactory.decodeResource(getApplicationContext().getResources(), R.drawable.je_vais_voter);
 
        Uri selectedImage = FirstActivity.imageUri;
        getContentResolver().notifyChange(selectedImage, null);
-       ImageView imageView = (ImageView) findViewById(R.id.image_view);
        ContentResolver cr = getContentResolver();
+
+       int orientation = 0;
+
+        try {
+            ExifInterface ei = new ExifInterface(selectedImage.getPath());
+            orientation = ei.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL);
+            Log.d("Orientation", orientation + "");
+            //Log.d("Orientation", selectedImage.getPath() + " " + orientation + " " + ExifInterface.ORIENTATION_ROTATE_90 + " " + ExifInterface.ORIENTATION_ROTATE_180);
+
+        }
+        catch (IOException e){
+            e.printStackTrace();
+        }
+
+
        try {
            bitmap = android.provider.MediaStore.Images.Media
                    .getBitmap(cr, selectedImage);
-           Log.d("OTHMANE", font.getWidth() + " " + font.getHeight());
-           bitmap = cropFromCenterBitmap(bitmap);
-           bitmap = getResizedBitmap(bitmap, 800, 800);
-           if(FirstActivity.rotation == 0 || FirstActivity.rotation == 0)
-               bitmap = rotate(bitmap, 3*90);
-           else if(FirstActivity.rotation == 3)
-               bitmap = rotate(bitmap, 2*90);
-           bitmap = mcreateBitmap(font, bitmap);
+
+           //Log.d("OTHMANE", font.getWidth() + " " + font.getHeight());
+
+
+           switch(orientation) {
+               case ExifInterface.ORIENTATION_ROTATE_90: //Portrait
+                   bitmap = rotate(bitmap, 90);
+                   bitmap = mcreateBitmapPortrait(bitmap);
+                   Log.d("Rotate", "90");
+                   break;
+               case ExifInterface.ORIENTATION_ROTATE_180:
+                   bitmap = rotate(bitmap, 180);
+                   bitmap = mcreateBitmapLandscape(bitmap);
+                   Log.d("Rotate", "180");
+                   break;
+               case 8:
+                   bitmap = rotate(bitmap, -90);
+                   bitmap = mcreateBitmapPortrait(bitmap);
+                   Log.d("Rotate", "8");
+                   break;
+               default:
+                   bitmap = mcreateBitmapLandscape(bitmap);
+                   Log.d("Rotate", "180");
+                   break;
+
+           }
+
+           //bitmap = cropFromCenterBitmap(bitmap);
+
+           //font.recycle();
            imageView.setImageBitmap(bitmap);
            storeImage(bitmap);
+           //bitmap.recycle();
 
 
        } catch (Exception e) {
@@ -106,37 +131,6 @@ public class MainActivity extends ActionBarActivity {
            Log.e("Camera", e.toString());
        }
 
-        /*
-        rotation 0 = 3 * 90;
-        rotation 3 lands droite =
-        rota
-         */
-/*
-       List<String> permissionNeeds = Arrays.asList("publish_actions");
-       //try{
-       manager = LoginManager.getInstance();
-
-       manager.logInWithPublishPermissions(this, permissionNeeds);
-
-       manager.registerCallback(callbackManager, new FacebookCallback<LoginResult>() {
-           @Override
-           public void onSuccess(LoginResult loginResult) {
-
-               Log.d("Facebook", "Sharing Success");
-           }
-
-           @Override
-           public void onCancel() {
-               Log.d("Facebook", "Sharing Cancel");
-           }
-
-           @Override
-           public void onError(FacebookException exception) {
-               Log.d("Facebook", "Sharing Error onError");
-           }
-       });
-
-       */
 
        SharePhoto photo = new SharePhoto.Builder()
                .setBitmap(bitmap)
@@ -145,36 +139,10 @@ public class MainActivity extends ActionBarActivity {
                .addPhoto(photo)
                .build();
        shareButton.setShareContent(content);
+       //bitmap.recycle();
 
 
    }
-
-
-    public void sharePhoto(Bitmap image){
-        SharePhoto photo = new SharePhoto.Builder()
-                .setBitmap(image)
-                .build();
-        SharePhotoContent content = new SharePhotoContent.Builder()
-                .addPhoto(photo)
-                .build();
-        ShareApi.share(content, null);
-    }
-
-    public int getScreenOrientation()
-    {
-        Display getOrient = this.getWindowManager().getDefaultDisplay();
-        int orientation = Configuration.ORIENTATION_UNDEFINED;
-        if(getOrient.getWidth()==getOrient.getHeight()){
-            orientation = Configuration.ORIENTATION_SQUARE;
-        } else{
-            if(getOrient.getWidth() < getOrient.getHeight()){
-                orientation = Configuration.ORIENTATION_PORTRAIT;
-            }else {
-                orientation = Configuration.ORIENTATION_LANDSCAPE;
-            }
-        }
-        return orientation;
-    }
 
 
     private void storeImage(Bitmap image) {
@@ -201,7 +169,7 @@ public class MainActivity extends ActionBarActivity {
         // using Environment.getExternalStorageState() before doing this.
 
         File mediaStorageDir = new File(Environment.getExternalStoragePublicDirectory(
-                Environment.DIRECTORY_PICTURES), "Ana M3allem");
+                Environment.DIRECTORY_PICTURES), "Ana M3alem");
         // This location works best if you want the created images to be shared
         // between applications and persist after your app has been uninstalled.
 
@@ -233,41 +201,82 @@ public class MainActivity extends ActionBarActivity {
 
 
 
+    public Bitmap mcreateBitmapLandscape(Bitmap bitmap){
 
-    public Bitmap mcreateBitmap(Bitmap src, Bitmap watermark) {
+        int bitmap_width = bitmap.getWidth();
+        int bitmap_height = bitmap.getHeight();
 
-        Time t = new Time();
-        t.setToNow();
-        int w = src.getWidth();
-        int h = src.getHeight();
+        int hashtag_width = hashTag.getWidth();
+        int hashtag_height = hashTag.getHeight();
 
-        String mstrTitle = "11："+t.hour + ":" + t.minute + ":" + t.second;
-        String xx="34："+60;
-        String yy="44："+20;
-        Bitmap bmpTemp = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
+        int jevote_width = jeVote.getWidth();
+        int jevote_height = jeVote.getHeight();
+
+        Bitmap bmpTemp = Bitmap.createBitmap(hashtag_width, hashtag_height + (hashtag_width*bitmap_height)/bitmap_width + jevote_height, Bitmap.Config.ARGB_8888);
 
         Canvas canvas = new Canvas(bmpTemp);
         Paint photoPaint = new Paint();
         photoPaint.setDither(true);
         photoPaint.setFilterBitmap(true);
-        Rect s = new Rect(0, 0, src.getWidth(), src.getHeight());
-        Rect d = new Rect(0, 0, w, h);
-        canvas.drawBitmap(src, s, d, photoPaint);
 
-        String familyName = "new";
-        Typeface font = Typeface.create(familyName, Typeface.BOLD);
-        photoPaint.setColor(Color.BLUE);
-        photoPaint.setTypeface(font);
-        photoPaint.setTextSize(18);
-        //canvas.drawText(mstrTitle, 40, 20, photoPaint);
-        //canvas.drawText(xx,40, 40, photoPaint);
-        //canvas.drawText(yy, 40, 60, photoPaint);
-        canvas.drawBitmap(watermark, src.getWidth()/2 - watermark.getWidth()/2, src.getHeight()/2 - watermark.getHeight()/2, null);
+        Rect src_hashtag = new Rect(0, 0, hashtag_width, hashtag_height);
+        Rect dst_hashtag = new Rect(0, 0, hashtag_width, hashtag_height);
+        canvas.drawBitmap(hashTag, src_hashtag, dst_hashtag, photoPaint);
+
+        Rect src_bitmap = new Rect(0, 0, bitmap_width, bitmap_height);
+        Rect dst_bitmap = new Rect(0, hashtag_height, hashtag_width, hashtag_height + (hashtag_width*bitmap_height)/bitmap_width);
+        canvas.drawBitmap(bitmap, src_bitmap, dst_bitmap, photoPaint);
+
+        Rect src_jevote = new Rect(0, 0, jevote_width, jevote_height);
+        Rect dst_jevote = new Rect(0, hashtag_height + (hashtag_width*bitmap_height)/bitmap_width, hashtag_width, canvas.getHeight());
+        canvas.drawBitmap(jeVote, src_jevote, dst_jevote, photoPaint);
+
+
+        canvas.save(Canvas.ALL_SAVE_FLAG);
+        canvas.restore();
+
+        return bmpTemp;
+
+    }
+    public Bitmap mcreateBitmapPortrait(Bitmap bitmap) {
+
+        int bitmap_width = bitmap.getWidth();
+        int bitmap_height = bitmap.getHeight();
+
+        int hashtag_width = hashTag.getWidth();
+        int hashtag_height = hashTag.getHeight();
+
+        int jevote_width = jeVote.getWidth();
+        int jevote_height = jeVote.getHeight();
+
+
+        Bitmap bmpTemp = Bitmap.createBitmap(hashtag_width, (hashtag_width*bitmap_height)/bitmap_width, Bitmap.Config.ARGB_8888); //A modifier si jamais!!!
+
+        Canvas canvas = new Canvas(bmpTemp);
+        Paint photoPaint = new Paint();
+        photoPaint.setDither(true);
+        photoPaint.setFilterBitmap(true);
+
+        Rect src_bitmap = new Rect(0, 0, bitmap_width, bitmap_height);
+        Rect dst_bitmap = new Rect(0, 0, hashtag_width, (hashtag_width*bitmap_height)/bitmap_width);
+        canvas.drawBitmap(bitmap, src_bitmap, dst_bitmap, photoPaint);
+
+
+        Rect src_hashtag = new Rect(0, 0, hashtag_width, hashtag_height);
+        Rect dst_hashtag = new Rect(0, 0, hashtag_width, hashtag_height);
+        canvas.drawBitmap(hashTag, src_hashtag, dst_hashtag, photoPaint);
+
+
+        Rect src_jevote = new Rect(0, 0, jevote_width, jevote_height);
+        Rect dst_jevote = new Rect(0, (hashtag_width*bitmap_height)/bitmap_width - jevote_height, hashtag_width, (hashtag_width*bitmap_height)/bitmap_width);
+        canvas.drawBitmap(jeVote, src_jevote, dst_jevote, photoPaint);
+
         canvas.save(Canvas.ALL_SAVE_FLAG);
         canvas.restore();
 
         return bmpTemp;
     }
+
 
     public Bitmap getResizedBitmap(Bitmap bm, int newWidth, int newHeight) {
         int width = bm.getWidth();
@@ -280,9 +289,9 @@ public class MainActivity extends ActionBarActivity {
         matrix.postScale(scaleWidth, scaleHeight);
 
         // "RECREATE" THE NEW BITMAP
-        Bitmap resizedBitmap = Bitmap.createBitmap(
+        bm = Bitmap.createBitmap(
                 bm, 0, 0, width, height, matrix, false);
-        return resizedBitmap;
+        return bm;
     }
 
     public static Bitmap rotate(Bitmap bitmap, int degree) {
@@ -296,28 +305,27 @@ public class MainActivity extends ActionBarActivity {
     }
 
     public Bitmap cropFromCenterBitmap(Bitmap source){
-        Bitmap dest;
         if (source.getWidth() >= source.getHeight()){
 
-            dest = Bitmap.createBitmap(
+            source = Bitmap.createBitmap(
                     source,
                     source.getWidth()/2 - source.getHeight()/2,
                     0,
-                    source.getHeight(),
-                    source.getHeight()
+                    hashTag.getWidth(),
+                    (int) (hashTag.getHeight()*0.55)
             );
 
         }else{
 
-            dest = Bitmap.createBitmap(
+            source = Bitmap.createBitmap(
                     source,
                     0,
                     source.getHeight()/2 - source.getWidth()/2,
-                    source.getWidth(),
-                    source.getWidth()
+                    hashTag.getWidth() ,
+                    (int) (hashTag.getHeight()*0.55)
             );
         }
-        return dest;
+        return source;
     }
 
 

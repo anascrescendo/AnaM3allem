@@ -16,6 +16,7 @@ import android.graphics.Rect;
 import android.graphics.Typeface;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
+import android.media.ExifInterface;
 import android.media.Image;
 import android.net.Uri;
 import android.os.Environment;
@@ -60,12 +61,10 @@ public class FirstActivity extends ActionBarActivity {
     private SessionManager session;
     private ImageButton takeButton;
 
-
-
     private static final int TAKE_PICTURE = 1;
     static Uri imageUri;
 
-    static int rotation;
+
 
 
 
@@ -203,50 +202,14 @@ public class FirstActivity extends ActionBarActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 
-
-
         super.onActivityResult(requestCode, resultCode, data);
+
         switch (requestCode) {
             case TAKE_PICTURE:
-                Display display = ((WindowManager) getApplicationContext().getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay();
-                rotation = display.getRotation();
-                Log.d("ROTATION", rotation + "");
-
-
-
                 if (resultCode == Activity.RESULT_OK) {
-                    /*
-                    Uri selectedImage = imageUri;
-                    getContentResolver().notifyChange(selectedImage, null);
-                    ImageView imageView = (ImageView) findViewById(R.id.sax);
-                    ContentResolver cr = getContentResolver();
-                    Bitmap bitmap;
-                    try {
-                        bitmap = android.provider.MediaStore.Images.Media
-                                .getBitmap(cr, selectedImage);
-                        Log.d("OTHMANE", font.getWidth() + " " + font.getHeight());
-                        bitmap = cropFromCenterBitmap(bitmap);
-                        bitmap = getResizedBitmap(bitmap, 800, 800);
-                        bitmap = rotate(bitmap, 90);
-                        bitmap = mcreateBitmap(font, bitmap);
-
-                        imageView.setImageBitmap(bitmap);
-                        Toast.makeText(this, selectedImage.toString(),
-                                Toast.LENGTH_LONG).show();
-                    } catch (Exception e) {
-                        Toast.makeText(this, "Failed to load", Toast.LENGTH_SHORT)
-                                .show();
-                        Log.e("Camera", e.toString());
-                    }
-                }
-                */
-
                     Intent i = new Intent(FirstActivity.this, MainActivity.class);
                     startActivity(i);
-
                 }
-                //finish();
-
                 break;
             default:
                 callbackManager.onActivityResult(requestCode, resultCode, data);

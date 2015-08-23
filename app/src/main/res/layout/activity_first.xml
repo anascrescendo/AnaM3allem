@@ -10,7 +10,11 @@
         android:id="@+id/login_button"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="20dp"
+        android:paddingTop="12dp"
+        android:paddingLeft="10dp"
+        android:paddingRight="10dp"
+        android:paddingBottom="12dp"
+        android:textSize="15dp"
         android:layout_gravity="center_horizontal|bottom" />
 
     <ImageButton
@@ -19,7 +23,7 @@
         android:layout_height="75dp"
         android:background="@drawable/pcam_button"
         android:layout_gravity="center_horizontal|bottom"
-        android:layout_marginBottom="40dp" />
+        android:layout_marginBottom="60dp" />
     <ImageView
         android:id="@+id/sax"
         android:layout_width="wrap_content"
