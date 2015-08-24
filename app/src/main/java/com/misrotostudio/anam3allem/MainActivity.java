@@ -103,31 +103,31 @@ public class MainActivity extends AppCompatActivity {
            switch(orientation) {
                case ExifInterface.ORIENTATION_ROTATE_90: //Portrait
                    bitmap = rotate(bitmap, 90);
-                   background = BitmapFactory.decodeResource(getApplicationContext().getResources(), R.drawable.i_will);
+                   background = BitmapFactory.decodeResource(getApplicationContext().getResources(), R.drawable.i_je_vote);
                    bitmap = mcreateBitmap(bitmap);
                    Log.d("Rotate", "90");
                    break;
                case ExifInterface.ORIENTATION_ROTATE_180:
                    bitmap = rotate(bitmap, 180);
-                   background = BitmapFactory.decodeResource(getApplicationContext().getResources(), R.drawable.je_vais);
+                   background = BitmapFactory.decodeResource(getApplicationContext().getResources(), R.drawable.n_je_vote);
                    bitmap = mcreateBitmap(bitmap);
                    Log.d("Rotate", "180");
                    break;
                case 8:
                    bitmap = rotate(bitmap, -90);
-                   background = BitmapFactory.decodeResource(getApplicationContext().getResources(), R.drawable.i_will);
+                   background = BitmapFactory.decodeResource(getApplicationContext().getResources(), R.drawable.i_je_vote);
                    bitmap = mcreateBitmap(bitmap);
                    Log.d("Rotate", "8");
                    break;
                default:
                    if(bitmap.getHeight()<bitmap.getWidth()) {
-                       background = BitmapFactory.decodeResource(getApplicationContext().getResources(), R.drawable.je_vais);
+                       background = BitmapFactory.decodeResource(getApplicationContext().getResources(), R.drawable.n_je_vote);
                        bitmap = mcreateBitmap(bitmap);
                        Log.d("Rotate", "landscape normal");
                    }
                    else {
                        bitmap = rotate(bitmap, 90);
-                       background = BitmapFactory.decodeResource(getApplicationContext().getResources(), R.drawable.i_will);
+                       background = BitmapFactory.decodeResource(getApplicationContext().getResources(), R.drawable.i_je_vote);
                        bitmap = mcreateBitmap(bitmap);
                    }
                    break;
@@ -271,7 +271,8 @@ public class MainActivity extends AppCompatActivity {
         }
         else{
             background.recycle();
-            background = BitmapFactory.decodeResource(getApplicationContext().getResources(), R.drawable.i_will);
+            background = BitmapFactory.decodeResource(getApplicationContext().getResources(), R.drawable.i_je_vote);
+
 
             background_width = background.getWidth();
             background_height = background.getHeight();
@@ -294,12 +295,15 @@ public class MainActivity extends AppCompatActivity {
             canvas.drawBitmap(background, src_dst_background, src_dst_background, photoPaint);
 
 
+
             int new_bitmap_width = h2;
             int new_bitmap_height = h2;//(new_bitmap_width*bitmap_height)/bitmap_width;
 
             Rect src_bitmap = new Rect(bitmap_width/2 - bitmap_height/2, 0, bitmap_width/2 + bitmap_height/2, bitmap_height); //On va couper ce qui deborde du bitmap se servir de la ration comme atout;
             Rect dst_bitmap = new Rect(background_center_x - new_bitmap_width/2, h1, background_center_x + new_bitmap_width/2, h1 + new_bitmap_height);
             canvas.drawBitmap(bitmap, src_bitmap, dst_bitmap, photoPaint);
+
+
 
             Log.d("Choix", "Troisieme");
 
