@@ -24,6 +24,7 @@ import android.os.Handler;
 import android.provider.MediaStore;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.text.format.Time;
 import android.util.Log;
 import android.view.Display;
@@ -54,7 +55,7 @@ import java.io.File;
 import java.util.Arrays;
 
 
-public class FirstActivity extends ActionBarActivity {
+public class FirstActivity extends AppCompatActivity {
 
     private LoginButton loginButton;
     private CallbackManager callbackManager;
@@ -104,11 +105,11 @@ public class FirstActivity extends ActionBarActivity {
                             @Override
                             public void onCompleted(JSONObject me, GraphResponse response) {
                                 if (response.getError() != null) {
-                                    // handle error
+                                    Log.e("Facebook", "error response to get user info");// handle error
                                 } else {
-                                    String email = me.optString("email");
-                                    String id = me.optString("id");
-                                    String name = new String(me.optString("last_name") + " " + me.optString("first_name"));
+                                    //String email = me.optString("email");
+                                    //String id = me.optString("id");
+                                    //String name = new String(me.optString("last_name") + " " + me.optString("first_name"));
 
                                     session.setLogin(true);
                                     takeButton.setVisibility(View.VISIBLE);
@@ -222,6 +223,7 @@ public class FirstActivity extends ActionBarActivity {
         File photo = new File(Environment.getExternalStorageDirectory(),  "Pic.jpg");
         intent.putExtra(MediaStore.EXTRA_OUTPUT,
                 Uri.fromFile(photo));
+
         imageUri = Uri.fromFile(photo);
 
 
