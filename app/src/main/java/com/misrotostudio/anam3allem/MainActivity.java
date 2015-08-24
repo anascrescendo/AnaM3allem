@@ -3,6 +3,8 @@ package com.misrotostudio.anam3allem;
 
 import android.content.ContentResolver;
 
+import android.content.Context;
+import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
@@ -14,6 +16,7 @@ import android.graphics.Typeface;
 import android.media.ExifInterface;
 import android.net.Uri;
 import android.os.Environment;
+import android.provider.MediaStore;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -37,14 +40,13 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
 
 public class MainActivity extends AppCompatActivity {
 
-    private Bitmap hashTag;
-    private Bitmap jeVote;
     private Bitmap bitmap;
 
     private Bitmap background;
@@ -58,6 +60,8 @@ public class MainActivity extends AppCompatActivity {
 
 
 
+
+
    protected void onCreate(Bundle savedInstanceState){
        super.onCreate(savedInstanceState);
        FacebookSdk.sdkInitialize(getApplicationContext());
@@ -66,13 +70,13 @@ public class MainActivity extends AppCompatActivity {
        shareButton = (ShareButton)findViewById(R.id.fb_share_button);
        imageView = (ImageView) findViewById(R.id.image_view);
 
-       //hashTag = BitmapFactory.decodeResource(getApplicationContext().getResources(), R.drawable.hashtag);
-
-
 
        Uri selectedImage = FirstActivity.imageUri;
        getContentResolver().notifyChange(selectedImage, null);
        ContentResolver cr = getContentResolver();
+
+
+
 
        int orientation = 0;
 
@@ -80,7 +84,6 @@ public class MainActivity extends AppCompatActivity {
             ExifInterface ei = new ExifInterface(selectedImage.getPath());
             orientation = ei.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL);
             Log.d("Orientation", orientation + "");
-            //Log.d("Orientation", selectedImage.getPath() + " " + orientation + " " + ExifInterface.ORIENTATION_ROTATE_90 + " " + ExifInterface.ORIENTATION_ROTATE_180);
 
         }
         catch (IOException e){
@@ -88,11 +91,13 @@ public class MainActivity extends AppCompatActivity {
         }
 
 
+
+
+
        try {
            bitmap = android.provider.MediaStore.Images.Media
                    .getBitmap(cr, selectedImage);
 
-           //Log.d("OTHMANE", font.getWidth() + " " + font.getHeight());
 
 
            switch(orientation) {
@@ -115,9 +120,16 @@ public class MainActivity extends AppCompatActivity {
                    Log.d("Rotate", "8");
                    break;
                default:
-                   background = BitmapFactory.decodeResource(getApplicationContext().getResources(), R.drawable.je_vais);
-                   bitmap = mcreateBitmap(bitmap);
-                   Log.d("Rotate", "180");
+                   if(bitmap.getHeight()<bitmap.getWidth()) {
+                       background = BitmapFactory.decodeResource(getApplicationContext().getResources(), R.drawable.je_vais);
+                       bitmap = mcreateBitmap(bitmap);
+                       Log.d("Rotate", "landscape normal");
+                   }
+                   else {
+                       bitmap = rotate(bitmap, 90);
+                       background = BitmapFactory.decodeResource(getApplicationContext().getResources(), R.drawable.i_will);
+                       bitmap = mcreateBitmap(bitmap);
+                   }
                    break;
 
            }
@@ -207,17 +219,24 @@ public class MainActivity extends AppCompatActivity {
         int h2 = background_height * 444/660;
         int h3 = background_height * 129/660;
 
-        Bitmap bmpTemp = Bitmap.createBitmap(background_width, background_height, Bitmap.Config.ARGB_8888);
+        Canvas canvas = new Canvas();
+        Bitmap bmpTemp;
 
-        Canvas canvas = new Canvas(bmpTemp);
-        Paint photoPaint = new Paint();
-        photoPaint.setDither(true);
-        photoPaint.setFilterBitmap(true);
 
-        Rect src_dst_background = new Rect(0, 0, background_width, background_height);
-        canvas.drawBitmap(background, src_dst_background, src_dst_background, photoPaint);
 
-        if (bitmap_width >= bitmap_height && background_height/((background_width*bitmap_height)/bitmap_width) <= 766/408) {  //Landscape
+        if (bitmap_width >= bitmap_height && background_height/((background_width*bitmap_height)/bitmap_width) <= 766/408) {
+
+
+            bmpTemp = Bitmap.createBitmap(background_width, background_height, Bitmap.Config.ARGB_8888);
+
+            canvas = new Canvas(bmpTemp);
+            Paint photoPaint = new Paint();
+            photoPaint.setDither(true);
+            photoPaint.setFilterBitmap(true);
+
+            Rect src_dst_background = new Rect(0, 0, background_width, background_height);
+            canvas.drawBitmap(background, src_dst_background, src_dst_background, photoPaint);
+
             int new_bitmap_width = background_width;
             int new_bitmap_height = (new_bitmap_width*bitmap_height)/bitmap_width;
 
@@ -225,8 +244,20 @@ public class MainActivity extends AppCompatActivity {
             Rect dst_bitmap = new Rect(0, background_center_y-new_bitmap_height/2, new_bitmap_width, background_center_y + new_bitmap_height/2);
             canvas.drawBitmap(bitmap, src_bitmap, dst_bitmap, photoPaint);
 
+            Log.d("Choix", "Paysage");
+
         }
-        else { //Portrait
+        else if (bitmap_width <= bitmap_height) { //Portrait
+
+            bmpTemp = Bitmap.createBitmap(background_width, background_height, Bitmap.Config.ARGB_8888);
+
+            canvas = new Canvas(bmpTemp);
+            Paint photoPaint = new Paint();
+            photoPaint.setDither(true);
+            photoPaint.setFilterBitmap(true);
+
+            Rect src_dst_background = new Rect(0, 0, background_width, background_height);
+            canvas.drawBitmap(background, src_dst_background, src_dst_background, photoPaint);
 
             int new_bitmap_height = h2;
             int new_bitmap_width = (new_bitmap_height*bitmap_width)/bitmap_height;
@@ -234,6 +265,44 @@ public class MainActivity extends AppCompatActivity {
             Rect src_bitmap = new Rect(0, 0, bitmap_width, bitmap_height);
             Rect dst_bitmap = new Rect(background_center_x - new_bitmap_width/2, h1, background_center_x + new_bitmap_width/2, h1 + new_bitmap_height);
             canvas.drawBitmap(bitmap, src_bitmap, dst_bitmap, photoPaint);
+
+            Log.d("Choix", "Portrait");
+
+        }
+        else{
+            background.recycle();
+            background = BitmapFactory.decodeResource(getApplicationContext().getResources(), R.drawable.i_will);
+
+            background_width = background.getWidth();
+            background_height = background.getHeight();
+
+            background_center_x = background_width/2;
+            background_center_y = background_height/2;
+
+            h1 = background_height * 95/660;
+            h2 = background_height * 444/660;
+            h3 = background_height * 129/660;
+
+            bmpTemp = Bitmap.createBitmap(background_width, background_height, Bitmap.Config.ARGB_8888);
+
+            canvas = new Canvas(bmpTemp);
+            Paint photoPaint = new Paint();
+            photoPaint.setDither(true);
+            photoPaint.setFilterBitmap(true);
+
+            Rect src_dst_background = new Rect(0, 0, background_width, background_height);
+            canvas.drawBitmap(background, src_dst_background, src_dst_background, photoPaint);
+
+
+            int new_bitmap_width = h2;
+            int new_bitmap_height = h2;//(new_bitmap_width*bitmap_height)/bitmap_width;
+
+            Rect src_bitmap = new Rect(bitmap_width/2 - bitmap_height/2, 0, bitmap_width/2 + bitmap_height/2, bitmap_height); //On va couper ce qui deborde du bitmap se servir de la ration comme atout;
+            Rect dst_bitmap = new Rect(background_center_x - new_bitmap_width/2, h1, background_center_x + new_bitmap_width/2, h1 + new_bitmap_height);
+            canvas.drawBitmap(bitmap, src_bitmap, dst_bitmap, photoPaint);
+
+            Log.d("Choix", "Troisieme");
+
 
         }
 
@@ -254,8 +323,6 @@ public class MainActivity extends AppCompatActivity {
 
         return Bitmap.createBitmap(bitmap, 0, 0, w, h, mtx, true);
     }
-
-
 
 
 }

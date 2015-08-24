@@ -1,8 +1,11 @@
 <resources>
-    <string name="app_name">#ANAM3ALM</string>
+    <string name="app_name">#anam3allem</string>
 
-    <string name="hello_world">Hello world!</string>
+
     <string name="action_settings">Settings</string>
     <string name="app_id">913274798718601</string>
     <string name="title_activity_main">MainActivity</string>
+    <string name="charte">- L\'utilisation de cette application est conformément aux lois en vigueur  strictement interdite à l\'intérieur des bureaux de vote et de l\'isoloir.\n
+        - Cette application doit être utilisée à l\'extérieur du batiment.\n
+        - Le principe de cette application consiste à prendre un selfie avant ou immédiatement après le vote, à l\'exterieur du batiment et de le partager.</string>
 </resources>
